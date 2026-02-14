@@ -1,9 +1,23 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { ICredentialTestRequest, ICredentialType, INodeProperties } from 'n8n-workflow';
 
 export class openHABApi implements ICredentialType {
 	name = 'openHABApi';
 	displayName = 'openHAB / myopenHAB API';
 	documentationUrl = 'https://www.openhab.org/docs/configuration/rest.html';
+	test: ICredentialTestRequest = {
+		request: {
+			method: 'GET',
+			url: '={{(($credentials.authType === "cloud" ? "https://home.myopenhab.org" : ($credentials.baseUrlLocal || "http://localhost:8080"))).replace(/\\/+$/, "") + "/rest/items?limit=1"}}',
+			skipSslCertificateValidation:
+				'={{$credentials.authType === "token" && Boolean($credentials.allowUnauthorizedCerts)}}',
+			headers: {
+				Accept: 'application/json',
+				Authorization: '={{$credentials.authType === "token" ? "Bearer " + $credentials.token : undefined}}',
+				'X-OPENHAB-TOKEN':
+					'={{$credentials.authType === "cloud" ? ($credentials.cloudToken || undefined) : $credentials.token}}',
+			},
+		},
+	};
 
 	properties: INodeProperties[] = [
 		{
