@@ -6,7 +6,7 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -14,6 +14,6 @@
     "downlevelIteration": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["index.ts", "nodes/**/*.ts", "credentials/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

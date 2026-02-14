@@ -1,6 +1,6 @@
 # n8n openHAB Community Node
 
-<img align="right" width="220" src="./src/nodes/openHAB/openhab.svg" type="image/svg+xml"/>
+<img align="right" width="220" src="./nodes/openHAB/openhab.svg" type="image/svg+xml"/>
 
 [![GitHub Actions Build Status](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml/badge.svg?branch=main)](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml)
 [![MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

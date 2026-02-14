@@ -51,16 +51,30 @@ function formatDebugBody(value: unknown): string {
 	return String(value);
 }
 
-function logDebug(enabled: boolean, phase: string, payload: IDataObject): void {
+function logDebug(
+	context: IExecuteFunctions,
+	enabled: boolean,
+	phase: string,
+	payload: IDataObject,
+): void {
 	if (!enabled) {
 		return;
 	}
 
-	try {
-		console.log(`[openHAB debug] ${phase} ${JSON.stringify(payload)}`);
-	} catch {
-		console.log(`[openHAB debug] ${phase}`);
+	const logger = (context as IExecuteFunctions & { logger?: { debug?: (message: string) => void } })
+		.logger;
+	if (!logger?.debug) {
+		return;
 	}
+
+	const details = (() => {
+		try {
+			return ` ${JSON.stringify(payload)}`;
+		} catch {
+			return '';
+		}
+	})();
+	logger.debug(`[openHAB debug] ${phase}${details}`);
 }
 
 async function openhabApiRequest(
@@ -170,13 +184,13 @@ async function openhabApiRequest(
 	if (!isReadOperation) {
 		requestDebug.body = formatDebugBody(body);
 	}
-	logDebug(debugEnabled, 'request', requestDebug);
+	logDebug(this, debugEnabled, 'request', requestDebug);
 
 	let response: IDataObject;
 	try {
 		response = (await this.helpers.httpRequest(requestOptions)) as IDataObject;
 	} catch (error) {
-		logDebug(debugEnabled, 'transportError', {
+		logDebug(this, debugEnabled, 'transportError', {
 			method: normalizedMethod,
 			url: requestOptions.url,
 			error: (error as Error).message,
@@ -189,7 +203,7 @@ async function openhabApiRequest(
 	const statusMessage = (fullResponse.statusMessage as string | undefined) ?? '';
 
 	if (typeof statusCode !== 'number') {
-		logDebug(debugEnabled, 'responseError', {
+		logDebug(this, debugEnabled, 'responseError', {
 			method: normalizedMethod,
 			url: requestOptions.url,
 			error: 'openHAB request failed: missing HTTP status code in response.',
@@ -197,7 +211,7 @@ async function openhabApiRequest(
 		throw new Error('openHAB request failed: missing HTTP status code in response.');
 	}
 
-	logDebug(debugEnabled, 'response', {
+	logDebug(this, debugEnabled, 'response', {
 		method: normalizedMethod,
 		url: requestOptions.url,
 		statusCode,
@@ -208,7 +222,7 @@ async function openhabApiRequest(
 		const body = fullResponse.body;
 		const bodyMessage = body === undefined || body === null ? '' : formatDebugBody(body).trim();
 
-		logDebug(debugEnabled, 'responseError', {
+		logDebug(this, debugEnabled, 'responseError', {
 			method: normalizedMethod,
 			url: requestOptions.url,
 			statusCode,
