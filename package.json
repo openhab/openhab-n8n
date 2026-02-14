@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-openhab",
+  "name": "@openhab/n8n-nodes-openhab",
   "version": "0.2.0",
   "description": "Custom n8n node for the openHAB REST API, including myopenHAB cloud support.",
   "keywords": [
@@ -10,7 +10,13 @@
     "iot"
   ],
   "author": "openHAB Community",
-  "license": "EPL-2.0",
+  "maintainers": [
+    "openhabfoundation <infrastructure@openhabfoundation.org>",
+    "digitaldan <dan@digitaldan.com>",
+    "florian-h05 <florianh_dev@icloud.com>",
+    "kaikreuzer <kai@openhab.org>"
+  ],
+  "license": "MIT",
   "homepage": "https://www.openhab.org",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -50,5 +56,12 @@
   "overrides": {
     "@aws-sdk/*": "3.973.7",
     "fast-xml-parser": "5.3.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openhab/openhab-n8n.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openhab/openhab-n8n/issues"
   }
 }

@@ -3,7 +3,7 @@
 <img align="right" width="220" src="./src/nodes/openHAB/openhab.svg" type="image/svg+xml"/>
 
 [![GitHub Actions Build Status](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml/badge.svg?branch=main)](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml)
-[![EPL-2.0](https://img.shields.io/badge/license-EPL%202-green.svg)](https://opensource.org/licenses/EPL-2.0)
+[![MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Custom n8n node for interacting with the openHAB REST API, with optional myopenHAB cloud access.
 
@@ -25,13 +25,20 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 
 ## Installation
 
+1. Install from npm in n8n:
+   - **n8n UI**: Settings -> Community Nodes -> Install and enter `@openhab/n8n-nodes-openhab`
+   - **CLI (in your n8n deployment)**: `npm install @openhab/n8n-nodes-openhab`
+2. Restart n8n so it discovers the new node.
+
+### Local development install
+
 1. Build the node:
    ```bash
    npm install
    npm run build
    ```
-2. Copy `dist` into your n8n custom nodes directory (or set `N8N_CUSTOM_EXTENSIONS` to this project path).
-3. Restart n8n so it discovers the new node.
+2. Point n8n custom extensions to this project path with `N8N_CUSTOM_EXTENSIONS` (or copy `dist` into your custom nodes directory).
+3. Restart n8n.
 
 ## Usage
 
@@ -47,6 +54,22 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 4. Optional: enable **Enable Debug Logging** on the node to log request/response metadata to n8n logs (secrets are redacted).
 5. Execute the node; outputs are JSON objects ready for downstream n8n steps.
 
+### Usage examples
+
+1. Read a light state:
+   - Resource: `Item`
+   - Operation: `Get State`
+   - Item Name: `LivingRoomLight`
+2. Turn a switch on:
+   - Resource: `Item`
+   - Operation: `Send Command`
+   - Item Name: `KitchenSwitch`
+   - Command: `ON`
+3. Run a rule:
+   - Resource: `Rule`
+   - Operation: `Run`
+   - Rule UID: `evening_scene`
+
 ### Notes
 
 - In myopenHAB cloud mode, you can add an optional openHAB API token for endpoints that require elevated permissions.
@@ -61,4 +84,4 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 
 ## License
 
-Eclipse Public License 2.0. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

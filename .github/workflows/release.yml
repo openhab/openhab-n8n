@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -19,9 +20,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           cache: npm
           registry-url: https://registry.npmjs.org
+
+      - name: Upgrade npm for Trusted Publishing
+        run: npm install --global npm@^11.5.1
+
+      - name: Show runtime versions
+        run: |
+          node --version
+          npm --version
 
       - name: Install dependencies
         run: npm ci
@@ -56,21 +65,5 @@ jobs:
             n8n-nodes-openhab-${{ github.ref_name }}.tgz
             n8n-nodes-openhab-${{ github.ref_name }}.tgz.sha256
 
-      - name: Check npm token
-        id: npm_token
-        run: |
-          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "present=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "present=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Publish package to npm
-        if: ${{ steps.npm_token.outputs.present == 'true' }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
-
-      - name: Skip npm publish (NPM_TOKEN missing)
-        if: ${{ steps.npm_token.outputs.present != 'true' }}
-        run: echo "NPM_TOKEN is not configured. GitHub Release created, npm publish skipped."
+        run: npm publish --provenance --access public
