@@ -9,7 +9,10 @@
     "smart-home",
     "iot"
   ],
-  "author": "openHAB Community",
+  "author": {
+    "name": "openHAB",
+    "email": "info@openhab.org"
+  },
   "maintainers": [
     "openhabfoundation <infrastructure@openhabfoundation.org>",
     "digitaldan <dan@digitaldan.com>",
