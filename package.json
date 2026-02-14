@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-openhab",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Custom n8n node for the openHAB REST API, including myopenHAB cloud support.",
   "keywords": [
     "n8n-community-node-package",
