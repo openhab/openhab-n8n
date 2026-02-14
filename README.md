@@ -1,6 +1,6 @@
 # n8n openHAB Community Node
 
-<img align="right" width="220" src="./logo.svg" type="image/svg+xml"/>
+<img align="right" width="220" src="./src/nodes/openHAB/openhab.svg" type="image/svg+xml"/>
 
 [![GitHub Actions Build Status](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml/badge.svg?branch=main)](https://github.com/openhab/openhab-n8n/actions/workflows/ci-build.yml)
 [![EPL-2.0](https://img.shields.io/badge/license-EPL%202-green.svg)](https://opensource.org/licenses/EPL-2.0)
