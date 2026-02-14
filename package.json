@@ -1,0 +1,54 @@
+{
+  "name": "n8n-nodes-openhab",
+  "version": "0.1.0",
+  "description": "Custom n8n node for the openHAB REST API, including myopenHAB cloud support.",
+  "keywords": [
+    "n8n-community-node-package",
+    "openhab",
+    "home-automation",
+    "snart-home",
+    "iot"
+  ],
+  "author": "openHAB Community",
+  "license": "EPL-2.0",
+  "homepage": "https://www.openhab.org",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "nodes": [
+      "dist/nodes/openHAB/openHAB.node.js"
+    ],
+    "credentials": [
+      "dist/credentials/openHABApi.credentials.js"
+    ]
+  },
+  "scripts": {
+    "build": "tsc && npm run copy:assets",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts",
+    "copy:assets": "mkdir -p dist/nodes/openHAB && cp src/nodes/openHAB/openhab.svg dist/nodes/openHAB/openhab.svg",
+    "build:cli": "n8n-node build && npm run copy:assets"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "n8n-core": "^2.7.0",
+    "n8n-workflow": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@typescript-eslint/eslint-plugin": "^8.11.0",
+    "@typescript-eslint/parser": "^8.11.0",
+    "eslint": "^9.14.0",
+    "typescript": "^5.7.2",
+    "@n8n/node-cli": "0.19.0"
+  },
+  "overrides": {
+    "@aws-sdk/*": "3.973.7",
+    "fast-xml-parser": "5.3.4"
+  }
+}
