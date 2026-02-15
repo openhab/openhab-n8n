@@ -10,6 +10,11 @@ export class openHABApi implements ICredentialType {
 			url: '={{(($credentials.authType === "cloud" ? "https://home.myopenhab.org" : ($credentials.baseUrlLocal || "http://localhost:8080"))).replace(/\\/+$/, "") + "/rest/items?limit=1"}}',
 			skipSslCertificateValidation:
 				'={{$credentials.authType === "token" && Boolean($credentials.allowUnauthorizedCerts)}}',
+			auth: '={{$credentials.authType === "cloud" ? { "username": $credentials.username, "password": $credentials.password, "sendImmediately": true } : undefined}}' as unknown as {
+				username: string;
+				password: string;
+				sendImmediately?: boolean;
+			},
 			headers: {
 				Accept: 'application/json',
 				Authorization: '={{$credentials.authType === "token" ? "Bearer " + $credentials.token : undefined}}',
