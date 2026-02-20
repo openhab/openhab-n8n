@@ -53,6 +53,9 @@
     "n8n-workflow": "^2.7.0",
     "typescript": "^5.7.2"
   },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
   "overrides": {
     "@aws-sdk/*": "3.973.7",
     "fast-xml-parser": "5.3.4"

@@ -1,11 +1,14 @@
-import type {
-	IDataObject,
-	IExecuteFunctions,
-	IHttpRequestOptions,
-	INodeExecutionData,
-	INodeProperties,
-	INodeType,
-	INodeTypeDescription,
+import {
+	NodeApiError,
+	NodeOperationError,
+	type IDataObject,
+	type IExecuteFunctions,
+	type IHttpRequestOptions,
+	type INodeExecutionData,
+	type INodeProperties,
+	type INodeType,
+	type INodeTypeDescription,
+	type JsonObject,
 } from 'n8n-workflow';
 
 type AuthType = 'token' | 'cloud';
@@ -89,7 +92,8 @@ async function openhabApiRequest(
 
 	const rawAuthType = ((credentials.authType as string | undefined) ?? 'token').toLowerCase();
 	if (rawAuthType === 'basic') {
-		throw new Error(
+		throw new NodeOperationError(
+			this.getNode(),
 			'Local Basic Auth is no longer supported. Use "API Token (local openHAB)" or "myopenHAB Account".',
 		);
 	}
@@ -104,7 +108,7 @@ async function openhabApiRequest(
 		useCloud ? 'https://home.myopenhab.org' : configuredLocalBaseUrl || 'http://localhost:8080'
 	).replace(/\/+$/, '');
 	if (!baseUrl) {
-		throw new Error('Base URL is missing in credentials.');
+		throw new NodeOperationError(this.getNode(), 'Base URL is missing in credentials.');
 	}
 
 	const normalizedMethod = method.toUpperCase();
@@ -120,7 +124,10 @@ async function openhabApiRequest(
 		const username = credentials.username as string;
 		const password = credentials.password as string;
 		if (!username || !password) {
-			throw new Error('Username and password are required for myopenHAB Account.');
+			throw new NodeOperationError(
+				this.getNode(),
+				'Username and password are required for myopenHAB Account.',
+			);
 		}
 		const cloudToken = ((credentials.cloudToken as string | undefined) ?? '').trim();
 		if (cloudToken) {
@@ -129,7 +136,7 @@ async function openhabApiRequest(
 	} else {
 		const token = credentials.token as string;
 		if (!token) {
-			throw new Error('API token is required.');
+			throw new NodeOperationError(this.getNode(), 'API token is required.');
 		}
 		headers.Authorization = `Bearer ${token}`;
 		headers['X-OPENHAB-TOKEN'] = token;
@@ -145,7 +152,8 @@ async function openhabApiRequest(
 
 	const allowUnauthorizedCerts = Boolean(credentials.allowUnauthorizedCerts);
 	if (useCloud && allowUnauthorizedCerts) {
-		throw new Error(
+		throw new NodeOperationError(
+			this.getNode(),
 			'Self-signed certificates are not allowed for myopenHAB authentication. Disable "Allow Self-Signed Certificates" in credentials.',
 		);
 	}
@@ -208,7 +216,10 @@ async function openhabApiRequest(
 			url: requestOptions.url,
 			error: 'openHAB request failed: missing HTTP status code in response.',
 		});
-		throw new Error('openHAB request failed: missing HTTP status code in response.');
+		throw new NodeOperationError(
+			this.getNode(),
+			'openHAB request failed: missing HTTP status code in response.',
+		);
 	}
 
 	logDebug(this, debugEnabled, 'response', {
@@ -234,8 +245,20 @@ async function openhabApiRequest(
 			useCloud && statusCode === 401
 				? ' - For admin-level endpoints, set "openHAB API Token (optional)" in cloud credentials.'
 				: '';
-		const suffix = bodyMessage ? ` - ${bodyMessage}` : '';
-		throw new Error(`openHAB request failed with status ${statusCode} ${statusMessage}`.trim() + suffix + cloudAuthHint);
+		throw new NodeApiError(
+			this.getNode(),
+			{
+				statusCode,
+				statusMessage,
+				body,
+			} as JsonObject,
+			{
+				message:
+					`openHAB request failed with status ${statusCode} ${statusMessage}`.trim() +
+					cloudAuthHint,
+				description: bodyMessage || undefined,
+			},
+		);
 	}
 
 	if (options.fullResponse) {
@@ -722,15 +745,22 @@ export class openHAB implements INodeType {
 
 				if (Array.isArray(responseData)) {
 					responseData.forEach((entry) => {
-						returnData.push({ json: entry as IDataObject });
+						returnData.push({
+							json: entry as IDataObject,
+							pairedItem: { item: i },
+						});
 					});
 				} else {
-					returnData.push({ json: responseData as IDataObject });
+					returnData.push({
+						json: responseData as IDataObject,
+						pairedItem: { item: i },
+					});
 				}
 			} catch (error) {
 				if (this.continueOnFail()) {
 					returnData.push({
 						json: { error: (error as Error).message },
+						pairedItem: { item: i },
 					});
 					continue;
 				}
