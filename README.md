@@ -51,8 +51,7 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
    - **Thing**: list/get/status.
    - **Rule**: list/run/enable/disable.
    - **System**: system info.
-4. Optional: enable **Enable Debug Logging** on the node to log request/response metadata to n8n logs (secrets are redacted).
-5. Execute the node; outputs are JSON objects ready for downstream n8n steps.
+4. Execute the node; outputs are JSON objects ready for downstream n8n steps.
 
 ### Usage examples
 
@@ -72,6 +71,7 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 
 ### Notes
 
+- Authentication is applied through the credential type (used by `httpRequestWithAuthentication`), so each request automatically uses the selected auth mode.
 - In myopenHAB cloud mode, you can add an optional openHAB API token for endpoints that require elevated permissions.
 - Self-signed certificates are supported only for local openHAB HTTPS, not for myopenHAB cloud authentication.
 - When sending commands, use values your item accepts (e.g., `ON`, `OFF`, `22`, `50%`, `UP`, `DOWN`).
