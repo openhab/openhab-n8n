@@ -104,6 +104,14 @@ async function openhabApiRequest(
 		requestOptions.body = body;
 	}
 
+	if (authType === 'cloud') {
+		requestOptions.auth = {
+			username: credentials.username as string,
+			password: credentials.password as string,
+			sendImmediately: true,
+		};
+	}
+
 	let response: IDataObject;
 	try {
 		response = (await this.helpers.httpRequestWithAuthentication.call(

@@ -2,13 +2,14 @@ import type {
 	IAuthenticateGeneric,
 	ICredentialTestRequest,
 	ICredentialType,
+	IDataObject,
 	INodeProperties,
 } from 'n8n-workflow';
 
 export class openHABApi implements ICredentialType {
 	name = 'openHABApi';
 	displayName = 'openHAB / myopenHAB API';
-	documentationUrl = 'https://www.openhab.org/docs/configuration/rest.html';
+	documentationUrl = 'https://www.openhab.org/docs/configuration/restdocs.html#authentication';
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
@@ -17,12 +18,8 @@ export class openHABApi implements ICredentialType {
 				password: string;
 				sendImmediately?: boolean;
 			},
-			headers: {
-				Authorization:
-					'={{$credentials.authType === "token" ? "Bearer " + $credentials.token : undefined}}',
-				'X-OPENHAB-TOKEN':
-					'={{$credentials.authType === "cloud" ? ($credentials.cloudToken || undefined) : $credentials.token}}',
-			},
+			headers:
+				'={{$credentials.authType === "token" ? { "Authorization": "Bearer " + $credentials.token, "X-OPENHAB-TOKEN": $credentials.token } : ($credentials.cloudToken ? { "X-OPENHAB-TOKEN": $credentials.cloudToken } : {})}}' as unknown as IDataObject,
 		},
 	};
 	test: ICredentialTestRequest = {
@@ -36,12 +33,8 @@ export class openHABApi implements ICredentialType {
 				password: string;
 				sendImmediately?: boolean;
 			},
-			headers: {
-				Accept: 'application/json',
-				Authorization: '={{$credentials.authType === "token" ? "Bearer " + $credentials.token : undefined}}',
-				'X-OPENHAB-TOKEN':
-					'={{$credentials.authType === "cloud" ? ($credentials.cloudToken || undefined) : $credentials.token}}',
-			},
+			headers:
+				'={{$credentials.authType === "token" ? { "Accept": "application/json", "Authorization": "Bearer " + $credentials.token, "X-OPENHAB-TOKEN": $credentials.token } : ($credentials.cloudToken ? { "Accept": "application/json", "X-OPENHAB-TOKEN": $credentials.cloudToken } : { "Accept": "application/json" })}}' as unknown as IDataObject,
 		},
 	};
 
