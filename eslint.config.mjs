@@ -3,14 +3,14 @@ import parserTs from '@typescript-eslint/parser';
 
 export default [
   {
-    ignores: ['dist', 'node_modules'],
+    ignores: ['dist', 'node_modules', 'test_coverage']
   },
   {
     files: ['**/*.ts'],
     languageOptions: {
       parser: parserTs,
       parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
         sourceType: 'module',
       },
     },
