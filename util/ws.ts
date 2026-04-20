@@ -239,7 +239,7 @@ export class WebSocketClient extends EventEmitter {
         offset += 2;
       } else if (payloadLen === 127) {
         if (this.buffer.length < 10) return; // Wait for more data
-        const bigLen = Number(this.buffer.readBigUInt64BE(2));
+        const bigLen = this.buffer.readBigUInt64BE(2);
 
         // Explicit bound check
         if (bigLen > BigInt(MAX_FRAME_SIZE)) {
@@ -249,7 +249,8 @@ export class WebSocketClient extends EventEmitter {
         }
 
         payloadLen = Number(bigLen);
-        offset += 8;      }
+        offset += 8;
+      }
 
       let maskKey: Buffer | null = null;
       if (isMasked) {
