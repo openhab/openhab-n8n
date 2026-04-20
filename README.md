@@ -79,6 +79,7 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 ## Development
 
 - Lint: `npm run lint`
+- Test: `npm run test`
 - Build: `npm run build`
 - TypeScript config targets Node 18+.
 

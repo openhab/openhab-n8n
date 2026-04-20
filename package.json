@@ -39,6 +39,7 @@
     "dev": "tsc --watch",
     "lint": "eslint . --ext .ts",
     "copy:assets": "mkdir -p dist/nodes/openHAB && cp nodes/openHAB/openhab.svg dist/nodes/openHAB/openhab.svg",
+    "test": "jest",
     "build:cli": "n8n-node build && npm run copy:assets"
   },
   "engines": {
@@ -46,12 +47,17 @@
   },
   "devDependencies": {
     "@n8n/node-cli": "0.19.0",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.10.2",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.11.0",
     "@typescript-eslint/parser": "^8.11.0",
     "eslint": "^9.14.0",
+    "jest": "^30.3.0",
     "n8n-workflow": "^2.7.0",
-    "typescript": "^5.7.2"
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.7.2",
+    "ws": "^8.20.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
