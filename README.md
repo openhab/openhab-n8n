@@ -56,6 +56,22 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
    - **System**: system info.
 4. Execute the node; outputs are JSON objects ready for downstream n8n steps.
 
+#### Usage examples
+
+1. Read a light state:
+   - Resource: `Item`
+   - Operation: `Get State`
+   - Item Name: `LivingRoomLight`
+2. Turn a switch on:
+   - Resource: `Item`
+   - Operation: `Send Command`
+   - Item Name: `KitchenSwitch`
+   - Command: `ON`
+3. Run a rule:
+   - Resource: `Rule`
+   - Operation: `Run`
+   - Rule UID: `evening_scene`
+
 ### openHAB Trigger node
 
 1. Add the **openHAB Trigger** node to a workflow to listen for openHAV events and start workflows when they arrive.
@@ -91,22 +107,6 @@ Example event:
    "receivedAt": "2026-04-20T19:12:18.056Z"
 }
 ```
-
-### Usage examples
-
-1. Read a light state:
-   - Resource: `Item`
-   - Operation: `Get State`
-   - Item Name: `LivingRoomLight`
-2. Turn a switch on:
-   - Resource: `Item`
-   - Operation: `Send Command`
-   - Item Name: `KitchenSwitch`
-   - Command: `ON`
-3. Run a rule:
-   - Resource: `Rule`
-   - Operation: `Run`
-   - Rule UID: `evening_scene`
 
 ### Notes
 
