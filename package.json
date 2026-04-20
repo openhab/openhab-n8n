@@ -28,7 +28,8 @@
   ],
   "n8n": {
     "nodes": [
-      "dist/nodes/openHAB/openHAB.node.js"
+      "dist/nodes/openHAB/openHAB.node.js",
+      "dist/nodes/openHABTrigger/openHABTrigger.node.js"
     ],
     "credentials": [
       "dist/credentials/openHABApi.credentials.js"
@@ -38,7 +39,7 @@
     "build": "tsc && npm run copy:assets",
     "dev": "tsc --watch",
     "lint": "eslint . --ext .ts",
-    "copy:assets": "mkdir -p dist/nodes/openHAB && cp nodes/openHAB/openhab.svg dist/nodes/openHAB/openhab.svg",
+    "copy:assets": "mkdir -p dist/nodes/openHAB && cp nodes/openHAB/openhab.svg dist/nodes/openHAB/openhab.svg && cp nodes/openHABTrigger/openhab.svg dist/nodes/openHABTrigger/openhab.svg",
     "test": "jest",
     "build:cli": "n8n-node build && npm run copy:assets"
   },
