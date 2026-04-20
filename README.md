@@ -14,6 +14,7 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 - Inspect things and their status.
 - List, trigger, enable/disable rules.
 - Fetch system info for quick health checks.
+- Trigger workflows from openHAB events.
 - Works against local openHAB or remotely through `myopenhab.org`.
 
 ## Requirements
@@ -42,6 +43,8 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 
 ## Usage
 
+### openHAB node
+
 1. Add the **openHAB** node to a workflow.
 2. Set credentials:
    - **Local**: Base URL (e.g., `http://localhost:8080`) + API token.
@@ -52,6 +55,42 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
    - **Rule**: list/run/enable/disable.
    - **System**: system info.
 4. Execute the node; outputs are JSON objects ready for downstream n8n steps.
+
+### openHAB Trigger node
+
+1. Add the **openHAB Trigger** node to a workflow to listen for openHAV events and start workflows when they arrive.
+2. Set credentials:
+   - **Local**: Base URL (e.g., `http://localhost:8080`) + API token.
+   - **Cloud (myopenHAB)**: Choose “myopenHAB Account” in credentials and enter your myopenHAB login and set **openHAB API Token (optional)** to send `X-OPENHAB-TOKEN`.
+3. Filter events by:
+   - **Topic**: Comma-separated topic filters (supports `*` wildcard or RegEx and exclusions with `!`), e.g. `openhab/items/*/command,!openhab/items/MyItem/*` to listen for command to all Items except `MyItem`.
+   - **Type**: Comma-separated event types to include, e.g. `ItemCommandEvent,ItemStateChangedEvent,ItemStateUpdatedEvent`.
+   - **Source**: Comma-separated event sources to exclude, e.g. `org.openhab.ui=>org.openhab.core.io.rest,`. The node’s own source is always excluded to prevent loops.
+
+The trigger emits incoming events with the following properties:
+
+- `type`: event type
+- `topic`: event topic
+- `payload`: parsed JSON payload (if possible)
+- `source`: event source (if present)
+- `rawPayload`: raw payload string
+- `receivedAt`: ISO timestamp
+
+Example event:
+
+```json
+{
+   "type": "ItemCommandEvent", 
+   "topic": "openhab/items/Florian_Licht/command",
+   "payload": {
+      "type": "OnOff", 
+      "value": "ON"
+   },
+   "source": "org.openhab.ui=>org.openhab.core.io.rest",
+   "rawPayload": "{\"type\":\"OnOff\",\"value\":\"ON\"}",
+   "receivedAt": "2026-04-20T19:12:18.056Z"
+}
+```
 
 ### Usage examples
 
