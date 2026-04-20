@@ -9,7 +9,7 @@ export type AuthType = 'token' | 'cloud';
 
 /**
  * Converts a string into a URL-friendly slug.
- * * @param input - The string to slugify
+ * @param input The string to slugify
  * @returns A lowercased string with special characters replaced by underscores
  */
 function slugify(input: string): string {
@@ -23,10 +23,16 @@ function slugify(input: string): string {
     .replace(/^_|_$/g, '');
 }
 
+/**
+ * Generates an event source name based on the workflow and node names.
+ */
 export function getEventSource(this: ITriggerFunctions | IExecuteFunctions) {
   return `io.n8n:${slugify(this.getWorkflow().name ?? this.getWorkflow().id!)}:${slugify(this.getNode().name)}`;
 }
 
+/**
+ * Builds the base URL, validates credentials, blocks allowUnauthorizedCerts for cloud, and returns API configuration.
+ */
 export async function setupOpenHABApi(this: ITriggerFunctions | IExecuteFunctions) {
   const credentials = (await this.getCredentials('openHABApi')) as ICredentialDataDecryptedObject;
 
