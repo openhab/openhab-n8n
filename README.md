@@ -74,7 +74,7 @@ Custom n8n node for interacting with the openHAB REST API, with optional myopenH
 
 ### openHAB Trigger node
 
-1. Add the **openHAB Trigger** node to a workflow to listen for openHAV events and start workflows when they arrive.
+1. Add the **openHAB Trigger** node to a workflow to listen for openHAB events and start workflows when they arrive.
 2. Set credentials:
    - **Local**: Base URL (e.g., `http://localhost:8080`) + API token.
    - **Cloud (myopenHAB)**: Choose “myopenHAB Account” in credentials and enter your myopenHAB login and set **openHAB API Token (optional)** to send `X-OPENHAB-TOKEN`.

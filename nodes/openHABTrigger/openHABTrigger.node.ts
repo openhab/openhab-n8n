@@ -162,7 +162,7 @@ export class openHABTrigger implements INodeType {
 
 		let isClosing = false;
 		let isConnected = false;
-		let heartbeatTimer: NodeJS.Timeout | undefined;
+		let heartbeatTimer: NodeJS.Timeout | null = null;
 
 		const ws = new WebSocketClient(url, {
 			protocols,
@@ -247,7 +247,7 @@ export class openHABTrigger implements INodeType {
 			isConnected = false;
 			if (heartbeatTimer) {
 				clearInterval(heartbeatTimer);
-				heartbeatTimer = undefined;
+				heartbeatTimer = null;
 			}
 			if (!isClosing) {
 				this.emitError(
@@ -267,9 +267,11 @@ export class openHABTrigger implements INodeType {
 		return {
 			closeFunction: async () => {
 				isClosing = true;
-				if (isConnected) {
-					ws.close();
+				if (heartbeatTimer) {
+					clearInterval(heartbeatTimer);
+					heartbeatTimer = null;
 				}
+				ws.close();
 			},
 		};
 	}

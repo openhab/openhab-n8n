@@ -16,10 +16,11 @@ export interface WebSocketClientOptions {
 export class WebSocketClient extends EventEmitter {
   public protocol: string = ''; // Holds the server-selected subprotocol after connection
 
-  private socket?: net.Socket | tls.TLSSocket;
+  private socket: net.Socket | tls.TLSSocket | null = null;
   private buffer: Buffer = Buffer.alloc(0);
   private isHandshakeComplete = false;
   private expectedAcceptKey = '';
+  private closed: boolean = false;
 
   constructor(private url: string, private options: WebSocketClientOptions = {}) {
     super();
@@ -44,7 +45,9 @@ export class WebSocketClient extends EventEmitter {
 
     this.socket.on('data', (data) => this.handleData(data));
     this.socket.on('error', (err) => this.emit('error', err));
-    this.socket.on('close', () => this.emit('close'));
+    this.socket.on('close', () => {
+      this.cleanup(true);
+    });
   }
 
   public send(data: string | Buffer): void {
@@ -69,16 +72,16 @@ export class WebSocketClient extends EventEmitter {
       headerLength += 8;
     }
 
-    // Client frames MUST be masked (RFC 6455 Section 5.1)
+    // RFC 6455 Section 5.1: Client frames must be masked randomly
     const maskKey = crypto.randomBytes(4);
     headerLength += 4;
 
     const frame = Buffer.alloc(headerLength + length);
 
-    // FIN = 1 (0x80), Opcode = 1 for text, 2 for binary
+    // FIN = 1 (0x80) | Opcode = 1 (0x01) for text, 2 (0x02) for binary
     frame[0] = 0x80 | (isBinary ? 0x02 : 0x01);
 
-    // Mask bit = 1 (0x80)
+    // Mask bit = 1 (0x80) | Payload length
     frame[1] = 0x80 | lengthByte;
 
     let offset = 2;
@@ -101,13 +104,34 @@ export class WebSocketClient extends EventEmitter {
     this.socket.write(frame);
   }
 
-  public close(): void {
+  private cleanup(shouldEmitClose: boolean): void {
+    if (this.closed) return;
+    this.closed = true;
+
+    if (this.socket) {
+      this.socket.end();
+      this.socket = null;
+    }
+
+    if (shouldEmitClose) {
+      this.emit('close');
+    }
+  }
+
+  public close(shouldEmitClose = true): void {
     if (this.socket && this.isHandshakeComplete) {
-      // Send a basic close frame (Opcode 8)
-      const frame = Buffer.from([0x88, 0x80, 0x00, 0x00, 0x00, 0x00]);
+      // RFC 6455 Section 5.1: Client frames must be masked randomly
+      const mask = crypto.randomBytes(4);
+
+      // Byte 0: FIN = 1 (0x80) | Opcode = 0x08 => 0x88
+      // Byte 1: Mask bit = 1 (0x80) | Payload length (0) => 0x80
+      const header = Buffer.from([0x88, 0x80]);
+
+      const frame = Buffer.concat([header, mask]);
+
       this.socket.write(frame);
     }
-    this.socket?.end();
+    this.cleanup(shouldEmitClose);
   }
 
   private performHandshake(url: URL): void {
@@ -153,8 +177,10 @@ export class WebSocketClient extends EventEmitter {
       const headersStr = this.buffer.subarray(0, headerEndIndex).toString('utf8');
       const lines = headersStr.split('\r\n');
       const statusLine = lines[0];
+      const statusMatch = /^HTTP\/\d+(?:\.\d+)?\s+(\d{3})(?:\s|$)/i.exec(statusLine);
+      const statusCode = statusMatch ? Number(statusMatch[1]) : NaN;
 
-      if (!statusLine.includes('101')) {
+      if (statusCode !== 101) {
         this.emit('error', new Error(`Handshake failed. Server responded with: ${statusLine}`));
         this.socket?.destroy();
         return;
@@ -239,8 +265,7 @@ export class WebSocketClient extends EventEmitter {
       } else if (opcode === 0x02) { // Binary
         this.emit('message', payload);
       } else if (opcode === 0x08) { // Close
-        this.emit('close');
-        this.socket?.end();
+        this.close()
       } else if (opcode === 0x09) { // Ping
         this.sendPong(payload);
       }
@@ -252,13 +277,24 @@ export class WebSocketClient extends EventEmitter {
 
   private sendPong(pingData: Buffer): void {
     if (!this.socket) return;
-    const maskKey = crypto.randomBytes(4);
-    const frame = Buffer.alloc(2 + 4 + pingData.length);
 
-    frame[0] = 0x8A; // FIN + Pong opcode (10)
-    frame[1] = 0x80 | pingData.length; // Masked + length
+    // RFC 6455 Section 5.5: Control frames MUST have a payload length of 125 bytes or less
+    if (pingData.length > 125) {
+      this.emit('error', new Error('Pong payload too large. Closing connection.'));
+      this.socket?.destroy();
+      return;
+    }
+
+    // RFC 6455 Section 5.1: Client frames must be masked randomly
+    const maskKey = crypto.randomBytes(4);
+
+    const frame = Buffer.alloc(2 + 4 + pingData.length);
+    frame[0] = 0x8A; // FIN = 1 (0x80) | Opcode = 0x0A => 0x8A
+    frame[1] = 0x80 | pingData.length; // Mask bit = 1 (0x80) | Payload length
+
     maskKey.copy(frame, 2);
 
+    // Apply masking to the payload
     for (let i = 0; i < pingData.length; i++) {
       frame[6 + i] = pingData[i] ^ maskKey[i % 4];
     }
