@@ -13,6 +13,8 @@ export interface WebSocketClientOptions {
   protocols?: string | string[];
 }
 
+const MAX_FRAME_SIZE = 64 * 1024 * 1024; // 64 MiB
+
 export class WebSocketClient extends EventEmitter {
   public protocol: string = ''; // Holds the server-selected subprotocol after connection
 
@@ -237,9 +239,17 @@ export class WebSocketClient extends EventEmitter {
         offset += 2;
       } else if (payloadLen === 127) {
         if (this.buffer.length < 10) return; // Wait for more data
-        payloadLen = Number(this.buffer.readBigUInt64BE(2));
-        offset += 8;
-      }
+        const bigLen = Number(this.buffer.readBigUInt64BE(2));
+
+        // Explicit bound check
+        if (bigLen > BigInt(MAX_FRAME_SIZE)) {
+          this.emit('error', new Error('Frame size exceeds maximum allowed limit'));
+          this.socket?.destroy();
+          return;
+        }
+
+        payloadLen = Number(bigLen);
+        offset += 8;      }
 
       let maskKey: Buffer | null = null;
       if (isMasked) {
@@ -280,7 +290,7 @@ export class WebSocketClient extends EventEmitter {
 
     // RFC 6455 Section 5.5: Control frames MUST have a payload length of 125 bytes or less
     if (pingData.length > 125) {
-      this.emit('error', new Error('Pong payload too large. Closing connection.'));
+      this.emit('error', new Error('Ping payload too large. Closing connection.'));
       this.socket?.destroy();
       return;
     }

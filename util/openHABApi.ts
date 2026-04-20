@@ -71,7 +71,7 @@ export async function setupOpenHABApi(this: ITriggerFunctions | IExecuteFunction
     }
   } else {
     const token = credentials.token as string;
-    if (!token) {
+    if (!token || !token.trim()) {
       throw new NodeOperationError(this.getNode(), 'API token is required.');
     }
   }
