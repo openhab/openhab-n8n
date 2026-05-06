@@ -458,7 +458,7 @@ export class openHAB implements INodeType {
 								`/items/${encodeURIComponent(itemName)}`,
 								command,
 								{},
-								{ plainText: true, fullResponse: true, extraHeaders: { 'X-Openhab-Source': source } },
+								{ plainText: true, fullResponse: true, extraHeaders: { 'X-OpenHAB-Source': source } },
 							)) as IDataObject;
 							responseData = {
 								item: itemName,
