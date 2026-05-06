@@ -97,7 +97,7 @@ Example event:
 ```json
 {
    "type": "ItemCommandEvent", 
-   "topic": "openhab/items/Florian_Licht/command",
+   "topic": "openhab/items/Kitchen_Light/command",
    "payload": {
       "type": "OnOff", 
       "value": "ON"
