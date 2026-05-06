@@ -9,9 +9,9 @@ import {
 	type INodeType,
 	type INodeTypeDescription,
 	type JsonObject,
-} from 'n8n-workflow';
-
-type AuthType = 'token' | 'cloud';
+	type ICredentialDataDecryptedObject,
+} from 'n8n-workflow'
+import { getEventSource, setupOpenHABApi } from '../../util/openHABApi'
 
 interface ApiRequestOptions {
 	plainText?: boolean;
@@ -27,28 +27,9 @@ async function openhabApiRequest(
 	qs: IDataObject = {},
 	options: ApiRequestOptions = {},
 ) {
-	const credentials = (await this.getCredentials('openHABApi')) as IDataObject;
+	const credentials = (await this.getCredentials('openHABApi')) as ICredentialDataDecryptedObject;
 
-	const rawAuthType = ((credentials.authType as string | undefined) ?? 'token').toLowerCase();
-	if (rawAuthType === 'basic') {
-		throw new NodeOperationError(
-			this.getNode(),
-			'Local Basic Auth is no longer supported. Use "API Token (local openHAB)" or "myopenHAB Account".',
-		);
-	}
-	const authType: AuthType = rawAuthType === 'cloud' ? 'cloud' : 'token';
-	const useCloud = authType === 'cloud';
-	const configuredLocalBaseUrl = (
-		(credentials.baseUrlLocal as string | undefined) ??
-		(credentials.baseUrl as string | undefined) ??
-		''
-	).trim();
-	const baseUrl = (
-		useCloud ? 'https://home.myopenhab.org' : configuredLocalBaseUrl || 'http://localhost:8080'
-	).replace(/\/+$/, '');
-	if (!baseUrl) {
-		throw new NodeOperationError(this.getNode(), 'Base URL is missing in credentials.');
-	}
+	const { useCloud, baseUrl, skipSslCertificateValidation } = await setupOpenHABApi.call(this);
 
 	const normalizedMethod = method.toUpperCase();
 	const isReadOperation = ['GET', 'HEAD'].includes(normalizedMethod);
@@ -56,22 +37,6 @@ async function openhabApiRequest(
 		Accept: options.plainText ? 'text/plain' : 'application/json',
 		...(options.extraHeaders ?? {}),
 	};
-
-	if (authType === 'cloud') {
-		const username = credentials.username as string;
-		const password = credentials.password as string;
-		if (!username || !password) {
-			throw new NodeOperationError(
-				this.getNode(),
-				'Username and password are required for myopenHAB Account.',
-			);
-		}
-	} else {
-		const token = credentials.token as string;
-		if (!token) {
-			throw new NodeOperationError(this.getNode(), 'API token is required.');
-		}
-	}
 
 	if (!isReadOperation) {
 		if (options.plainText) {
@@ -81,21 +46,13 @@ async function openhabApiRequest(
 		}
 	}
 
-	const allowUnauthorizedCerts = Boolean(credentials.allowUnauthorizedCerts);
-	if (useCloud && allowUnauthorizedCerts) {
-		throw new NodeOperationError(
-			this.getNode(),
-			'Self-signed certificates are not allowed for myopenHAB authentication. Disable "Allow Self-Signed Certificates" in credentials.',
-		);
-	}
-
 	const requestOptions: IHttpRequestOptions = {
 		method: normalizedMethod as IHttpRequestOptions['method'],
 		url: `${baseUrl}/rest${path}`,
 		qs,
 		headers,
 		json: !options.plainText,
-		skipSslCertificateValidation: allowUnauthorizedCerts && !useCloud,
+		skipSslCertificateValidation,
 		returnFullResponse: true,
 		ignoreHttpStatusErrors: true,
 	};
@@ -104,7 +61,7 @@ async function openhabApiRequest(
 		requestOptions.body = body;
 	}
 
-	if (authType === 'cloud') {
+	if (useCloud) {
 		requestOptions.auth = {
 			username: credentials.username as string,
 			password: credentials.password as string,
@@ -450,6 +407,7 @@ export class openHAB implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
+		const source = getEventSource.call(this);
 
 		for (let i = 0; i < items.length; i++) {
 			try {
@@ -500,7 +458,7 @@ export class openHAB implements INodeType {
 								`/items/${encodeURIComponent(itemName)}`,
 								command,
 								{},
-								{ plainText: true, fullResponse: true },
+								{ plainText: true, fullResponse: true, extraHeaders: { 'X-Openhab-Source': source } },
 							)) as IDataObject;
 							responseData = {
 								item: itemName,
